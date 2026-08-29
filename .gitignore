@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Vercel
+.vercel
+
+# Editors
+*.swp
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Uncomment if this repo is public and the compliance notes should stay private:
+# docs/BandBox-Compliance-Review.txt

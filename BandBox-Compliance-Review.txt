@@ -1,0 +1,648 @@
+================================================================================
+BANDBOX — WEBSITE COPY AND APP STORE COMPLIANCE REVIEW
+Prepared 29 August 2026. Everything a reviewer needs is in this one file.
+
+HOW TO USE THIS FILE
+Paste the whole thing into a fresh Claude conversation. Part 1 is the review
+request and the technical facts about the app. Parts 2 through 5 are the four
+pages of website copy to be reviewed. No access to the app's source code is
+needed — the facts in Part 1 are the ground truth.
+================================================================================
+
+
+################################################################################
+PART 1 — THE REVIEW REQUEST
+################################################################################
+
+You're reviewing website copy for a solo-developed iOS app called BandBox before
+its first App Store submission. You do not have access to the app's source code,
+so treat the technical description below as established fact — do not ask for the
+code, and do not hedge findings on details you can't inspect. Four pages follow
+in Parts 2 through 5: a privacy policy, terms of service, support page, and a
+notes-for-schools page.
+
+
+WHAT THE APP IS
+---------------
+
+BandBox helps school band directors track school-owned instruments and uniforms.
+Each item gets a printed QR label; the director scans it to sign gear out to a
+student and back in again. It's free, has no in-app purchases and no advertising,
+runs on iPhone and iPad on iOS 26 or later, and is operated by an individual
+developer, Derrick McGuire, in New Jersey, USA. There's also a Home Screen widget
+that is only a shortcut to the scanner and reads no data.
+
+
+HOW DATA ACTUALLY FLOWS (verified against the code)
+---------------------------------------------------
+
+SIGN-IN is by emailed six-digit one-time code, Sign in with Apple, or Google. The
+email path stores no password anywhere — the code is emailed and verified.
+Apple's Hide My Email relay addresses are accepted and never resolved.
+
+STORED PER ACCOUNT: user ID, email address, display name, and which sign-in
+method was used.
+
+STORED PER BAND: band name, a two-to-five-letter label prefix, a six-character
+join code, and the member list with roles and join dates. All members of a band
+can see each other's names and email addresses.
+
+STORED PER ITEM: label code, name, instrument-or-uniform type, category, serial
+number, size, notes, who it's signed out to, and when.
+
+STORED PER HISTORY ENTRY: the action (added, signed out, signed in, deleted), the
+student's name as typed, a snapshot of the item's name and code, and timestamps.
+History outlives the item it describes.
+
+THE ONLY PERSONAL DATA ABOUT A THIRD PARTY is a student's name, typed by a
+director into the "signed out to" field and retained in history. Nothing else
+about students is collected, and students have no accounts and never use the app.
+
+CAMERA: QR recognition runs entirely on-device through Apple's DataScanner. Only
+the decoded string (e.g. RVHS-K7P2QX) reaches the app. No image, frame, or video
+is ever saved or transmitted.
+
+NOT COLLECTED: no location, contacts, photo library, microphone, or health data.
+No advertising identifier. No third-party SDKs of any kind — no analytics, no
+crash reporter, no ad or social frameworks. Zero third-party code in the binary.
+Nothing is sold or shared for advertising.
+
+BACKEND is a single Supabase project (Postgres, auth, and the transactional email
+that sends sign-in codes), in one region. Sub-processors are therefore Supabase,
+plus Apple and Google for their respective sign-in buttons. Nothing else.
+
+SECURITY: all traffic over HTTPS; Postgres row-level security enforces band
+membership on every row inside the database rather than in the app; sign-in
+tokens live in the iOS keychain.
+
+SYNC runs only while the app is foregrounded, about every thirty seconds.
+Conflicts are last-write-wins with no merge and no UI, so simultaneous edits to
+one item can lose the earlier edit.
+
+DELETION: Settings > Delete Account calls a security-definer database function
+that deletes the user row; items, history, band membership, and any band the user
+created cascade from it. So when a band's owner deletes their account, that band
+and its entire inventory are deleted for every member. A member who leaves
+instead doesn't affect the inventory. Deleting an item writes a tombstone that
+still carries the item's fields; devices drop it locally after about a week, and
+it persists server-side until the account or band is deleted. Deleting the app
+removes only that device's local copy.
+
+LABEL PRINTING renders a PDF on-device that the user shares wherever they choose.
+
+APP PRIVACY ANSWERS PLANNED FOR APP STORE CONNECT: Email Address, Name, and Other
+User Content — all linked to the user, all for App Functionality, none used for
+tracking. The app's privacy manifest declares exactly those three, declares no
+tracking and no tracking domains, and declares no required-reason APIs.
+
+
+TASK ONE — CHECK THE PAGES AGAINST THOSE FACTS
+----------------------------------------------
+
+Report anything the pages claim that the description above doesn't support,
+anything in the description the pages fail to disclose, and any place the pages
+are vaguer or more reassuring than the facts justify. Quote the specific sentence
+in each case.
+
+
+TASK TWO — CHECK APP STORE COMPLIANCE
+-------------------------------------
+
+Use the CURRENT App Review Guidelines and App Store Connect requirements rather
+than your recollection — search Apple's developer documentation where you're not
+certain, and cite the guideline number for every finding. Cover at minimum:
+
+  * 5.1.1(i) privacy policy requirements: is anything Apple requires missing —
+    data collected, retention periods, deletion, third-party disclosure,
+    confirmation that data isn't used beyond the stated purpose?
+
+  * 5.1.1(v) account deletion: is deletion clearly described as reachable
+    in-app, is it a real deletion rather than a deactivation, and is the support
+    route for a failed deletion adequate? Is the consequence of an owner
+    deleting a shared band disclosed clearly enough that a user can't be
+    surprised by it?
+
+  * 5.1.2 data minimisation and third-party data, given a director types minors'
+    names into the app. Flag anything that reads as a legal overreach, or that a
+    school district's counsel would push back on. Say where COPPA and FERPA
+    genuinely apply to a tool used by school staff rather than by students, and
+    whether the pages say the right thing about that.
+
+  * 4.8 sign-in services: the app offers Sign in with Apple alongside Google and
+    emailed one-time codes. Confirm the pages describe what each method shares
+    correctly and that 4.8's requirements are satisfied.
+
+  * 3.1 payments, 2.1 completeness, and the 1.x content rules: flag anything in
+    the terms that conflicts with Apple's rules, particularly claims about
+    payment or an EULA that contradicts Apple's standard one.
+
+  * Whether the App Store EULA rider in the terms — Apple not a party, no
+    support obligation, not responsible for claims, third-party beneficiary,
+    embargo and prohibited-parties confirmation — is complete and correctly
+    worded for a developer supplying custom terms rather than relying on Apple's
+    standard EULA.
+
+  * Whether the planned App Privacy answers (Email Address, Name, Other User
+    Content; all linked, all App Functionality, none for tracking) are the right
+    declarations given the data described, and whether the privacy policy is
+    consistent with them. A mismatch between the policy, the privacy manifest,
+    and the App Store Connect answers is a rejection, so call out any drift
+    precisely.
+
+  * What the website needs beyond these four pages. The App Store Connect
+    listing requires a privacy policy URL and a support URL that both resolve,
+    and a marketing URL if supplied must work. Google's OAuth consent-screen
+    verification separately requires a homepage that describes the app, links to
+    the privacy policy, and matches the app name being verified. Tell me what
+    has to exist at the domain root for both of those to pass.
+
+
+HOW TO REPORT
+-------------
+
+One ranked list, most likely to cause a rejection first. For each finding: what's
+wrong, the sentence or claim it applies to, the guideline number, and exact
+replacement wording that can be pasted in. Don't rewrite whole documents, and
+don't add boilerplate that doesn't apply to a free app with no ads, no purchases,
+and no third-party SDKs — an unnecessary clause is a finding against you, not a
+safety margin. If a page is already fine, say so plainly instead of inventing
+improvements. List separately, at the end, anything that's a real legal question
+for a lawyer rather than a compliance checkbox — especially anything about
+student data in New Jersey public schools.
+
+The four pages follow.
+
+
+################################################################################
+PART 2 — PRIVACY POLICY (as it will be published at mybandbox.app/privacy)
+################################################################################
+
+PRIVACY POLICY
+
+Last updated 29 August 2026. Applies to the BandBox app for iPhone and iPad.
+
+
+THE SHORT VERSION
+
+BandBox stores your band's inventory so it appears on every device your band
+signs in on. It collects your email address, your name, your band's details, and
+the inventory you type in — including the name of whoever an instrument is signed
+out to. There is no advertising, no analytics, no tracking, and no third-party
+code in the app. Nothing is ever sold. Deleting your account in Settings deletes
+all of it.
+
+
+WHO WE ARE
+
+BandBox is an independently developed app for band directors. "BandBox", "we",
+and "us" mean Derrick McGuire, the developer of the app; "you" means the person
+signed in to it. Questions, requests, or anything that reads wrong to you:
+julianmcg08@gmail.com.
+
+
+WHAT BANDBOX COLLECTS
+
+Your account. To sign in, BandBox needs an identity to attach your band's
+inventory to. Depending on the button you press, that is:
+
+  * Email — your email address. BandBox emails you a six-digit code and you type
+    it back in. There is no password to store, so we don't store one.
+  * Sign in with Apple — the identifier Apple gives us, plus your name and email
+    address if you choose to share them. If you use Apple's Hide My Email, we
+    only ever see the relay address, and we don't try to look behind it.
+  * Google — your Google account's email address and name.
+
+We also keep the display name you type during setup and which of the three
+methods you used, so Settings can show it.
+
+Your band. The band's name, its two-to-five-letter label prefix, its
+six-character join code, and the list of accounts in it with their roles and the
+dates they joined. Every member of a band can see the names and email addresses
+of the other members on the People screen — that's the point of a shared band,
+and it's worth knowing before you invite someone.
+
+Your inventory. Everything you type about an item: its label code, name, whether
+it's an instrument or a uniform, its category, serial number, size, notes, who
+it's currently signed out to, and when.
+
+Your sign-out history. Each time an item is added, signed out, signed back in, or
+deleted, BandBox records what happened, when, the item's name and code, and the
+name of the student involved. History is the feature — it's what lets you answer
+"who had this trumpet in October" — so it's kept until you delete the account.
+
+Technical data. Reaching our server means your device's IP address is visible to
+it, as it is to any website you open. Our hosting provider keeps ordinary
+short-term server logs. We don't build profiles from them, and no analytics
+product receives them. If you have separately agreed to share diagnostics with
+Apple, Apple may pass us anonymised crash reports; those come from Apple rather
+than from code in our app, and they contain stack traces rather than your
+inventory.
+
+
+WHAT BANDBOX DOES NOT COLLECT
+
+  * No tracking. Nothing about you is linked with data from other companies' apps
+    or websites, for advertising or anything else. The app contains no
+    advertising identifier.
+  * No analytics or third-party SDKs. The app ships no third-party code at all —
+    no Firebase, no Google Analytics, no advertising or social SDKs, no crash
+    reporter of our own.
+  * No location, contacts, photo library, microphone, or health data. The app
+    never asks, because it never needs them.
+  * No photographs. See the camera section below.
+  * No sale of data, ever. Not to advertisers, not to data brokers, not to
+    anybody. There is no version of this app in which your students' names are a
+    product.
+
+
+THE CAMERA
+
+BandBox asks for camera access for one reason: reading the QR sticker on an
+instrument case. Recognition happens on your device using Apple's built-in
+scanner. BandBox receives only the short text the sticker encodes — something
+like RVHS-K7P2QX — and looks it up in your inventory. No photo or video is saved,
+and no camera frame ever leaves your device.
+
+
+STUDENT INFORMATION
+
+This deserves its own section, because it's the most sensitive thing in the app
+and it doesn't come from the student.
+
+When you sign an instrument out, BandBox stores the name you type in the "signed
+out to" field and keeps it in that item's history afterwards. In practice that
+name usually belongs to a minor. BandBox collects nothing else about them: no
+email address, no phone number, no date of birth, no grades, no photograph.
+Students have no accounts and never use the app.
+
+What we do with that name is exactly one thing: show it back to the members of
+your band. It is never used for advertising, never shared with anyone outside
+your band, and never analysed. It is stored in the same database row as the
+instrument, protected by the same rules, and deleted with the account.
+
+A few practical notes for directors:
+
+  * You decide how much to type. "A. Nguyen" or a locker number works as well as
+    a full legal name, and we'd encourage the shorter form.
+  * If your school or district has a policy about student information in
+    third-party apps, that policy governs. Please check it before entering
+    student names.
+  * Signing an item back in clears the current holder, but the history entry
+    remains, so the record of who had it stays readable. To remove a name from
+    history entirely, delete the item, or delete the account.
+
+BandBox is a tool for the adults who run band programs. It is not directed to
+children, and we do not knowingly allow anyone under 13 to create an account.
+
+
+WHERE THE DATA LIVES, AND WHO ELSE TOUCHES IT
+
+Your inventory is stored in two places: on each device that signs in, and in our
+hosted database so those devices can agree with each other. We use a small number
+of providers to run that, and no one else.
+
+  SUPABASE (supabase.com)
+    What it does: hosts the database, handles sign-in, and sends the six-digit
+    sign-in emails.
+    What it sees: everything described above.
+
+  APPLE
+    What it does: Sign in with Apple; App Store distribution.
+    What it sees: that you signed in with Apple. Apple does not receive your
+    inventory.
+
+  GOOGLE
+    What it does: Google sign-in, only if you use that button.
+    What it sees: that you signed in to BandBox with Google. Google does not
+    receive your inventory.
+
+Our database runs in a single region chosen when the project was created. If you
+use BandBox from elsewhere in the world, your data is transferred to and stored
+in that region.
+
+Beyond those providers, we disclose data in only two situations: to the other
+members of your own band, which is the feature working as designed; and where
+we're required to by valid legal process. If BandBox were ever transferred to
+someone else, this policy would travel with the data, and we'd say so in the app
+before the change took effect.
+
+
+HOW IT IS PROTECTED
+
+  * Every request between the app and the server uses HTTPS.
+  * The database enforces band membership on every row. A signed-in account can
+    only read and write rows belonging to a band it's a member of, and that check
+    happens inside the database rather than in the app — so a modified copy of
+    the app can't talk its way past it.
+  * Sign-in tokens are held in the iOS keychain rather than ordinary app storage.
+  * Your join code is the one credential you hand out. Anyone with it can join
+    your band and see the inventory, so treat it like a key to the uniform
+    closet. If it gets out, Settings > People lets you generate a new one, which
+    stops the old one working immediately.
+
+No system is perfectly secure and we won't pretend otherwise. If you find a
+weakness in BandBox, please write to julianmcg08@gmail.com and we'll take it
+seriously.
+
+
+HOW LONG IT IS KEPT
+
+  * Account, band, inventory, and history are kept for as long as the account
+    exists.
+  * When you delete an item, the app keeps a hidden marker for it so your other
+    devices find out it's gone. That marker still contains the item's details;
+    it's removed from each device about a week later, and it remains on the
+    server until the account or band is deleted.
+  * Deleting the app from a device removes that device's local copy. It does not
+    delete the account — sign in again anywhere and the inventory comes back.
+
+
+YOUR CHOICES
+
+  * Correct or change your details. Your name, band name, and label prefix are
+    all editable in Settings at any time.
+  * Leave a band. Members can leave; the band's inventory is unaffected.
+  * Delete everything. Settings > Delete Account removes your account, your
+    membership, and the inventory and history belonging to any band you created.
+    If you created the band, deleting your account deletes that band and its
+    entire inventory for every member of it. There's no undo and no backup we can
+    restore from, so print or export anything you want to keep first.
+  * Get a copy of your data. Email julianmcg08@gmail.com from your account's
+    address and we'll send you your band's records.
+
+Depending on where you live, you may have rights to access, correct, port, or
+erase your personal data and to object to how it's handled. We honour those
+requests regardless of where you live, and the same email address is how to make
+one. We'll never charge you for a request or treat you differently for having
+made one. We do not sell personal information, and we do not share it for
+cross-context behavioural advertising.
+
+
+CHANGES TO THIS POLICY
+
+If we change how BandBox handles data, we'll update this page and the date at the
+top. If the change is significant, we'll tell you in the app before it takes
+effect rather than hoping you re-read this page.
+
+
+CONTACT
+
+julianmcg08@gmail.com
+
+
+################################################################################
+PART 3 — TERMS OF SERVICE (as it will be published at mybandbox.app/terms)
+################################################################################
+
+TERMS OF SERVICE
+
+Last updated 29 August 2026.
+
+These terms cover your use of the BandBox app for iPhone and iPad. By using
+BandBox you agree to them. If you don't, please don't use the app.
+
+
+1. WHO CAN USE BANDBOX
+
+BandBox is built for band directors and the staff and volunteers who help them.
+You must be 18 or older, or the age of majority where you live, to create an
+account. If you're between 13 and 18 and helping run a program, you may use
+BandBox only with permission from a parent or guardian and from the staff member
+responsible for the program. Students don't need accounts and shouldn't be given
+one just to be tracked.
+
+
+2. YOUR ACCOUNT
+
+You sign in with an emailed six-digit code, with Apple, or with Google. Keep
+access to that email account and that device secure; anyone who can receive your
+codes can reach your inventory. Tell us at julianmcg08@gmail.com if you think
+someone has got into your account.
+
+
+3. BANDS AND SHARED ACCESS
+
+An inventory belongs to a band, not to a person. Anyone who enters your band's
+six-character join code becomes a member and can see and change the whole
+inventory: adding items, signing gear in and out, printing labels, and deleting
+items. Only the director who created the band can invite, remove members, or
+generate a new join code.
+
+Two consequences worth stating plainly. Sharing your join code is sharing your
+inventory — treat it accordingly. And because the band belongs to its creator, if
+the creator deletes their account, the band and its entire inventory are deleted
+for everyone in it.
+
+
+4. YOUR CONTENT, AND YOUR RESPONSIBILITY FOR IT
+
+The inventory you type in is yours. We claim no ownership of it. You grant us
+only the permission needed to run the service: to store your content, transmit it
+between your devices, and display it to the other members of your band.
+
+You are responsible for having the right to enter the information you enter. That
+includes student names. If your school, district, or employer has rules about
+putting student information into third-party software, or if laws such as FERPA
+apply to your program, complying with them is your responsibility, not ours — we
+have no relationship with your school unless we've signed something with them.
+Please don't enter information you don't need.
+
+You agree not to use BandBox to store unlawful content, to try to reach another
+band's data, to disrupt or reverse-engineer the service, or to use it in a way
+that breaks the law where you are.
+
+
+5. WHAT BANDBOX COSTS
+
+BandBox is currently free, with no in-app purchases and no advertising. If we
+ever introduce a paid feature, we'll say so clearly before you're charged, and
+nothing you've already got will start costing money without notice.
+
+
+6. WHAT BANDBOX IS NOT
+
+BandBox is a convenience tool for keeping track of school-owned instruments and
+uniforms. It is not an official record, an accounting system, an audit trail, or
+evidence for an insurance claim or a legal dispute. Specifically:
+
+  * Syncing happens while the app is open, roughly every thirty seconds. It is
+    not instantaneous.
+  * If two people edit the same item at nearly the same moment, the later edit
+    wins and the earlier one is lost. There is no merge and no warning.
+  * Data on a single device can be lost like any other app data — a broken phone,
+    a failed restore, a deletion.
+
+Keep your own records of anything that matters financially or legally.
+
+
+7. AVAILABILITY
+
+We'll try to keep BandBox working, but we don't promise it will always be
+available, and we may change, suspend, or discontinue features. If we ever
+discontinue the service outright, we'll give you notice in the app and a
+reasonable chance to export your data first.
+
+
+8. THIRD-PARTY SERVICES
+
+BandBox depends on Supabase for hosting and sign-in and on Apple and Google for
+the sign-in buttons you choose to use. Their terms and outages are outside our
+control.
+
+
+9. ENDING IT
+
+You can stop at any time by deleting your account in Settings, which is also how
+you delete your data. We may suspend or end an account that breaks these terms or
+that we're required to act on legally; where it's practical and lawful, we'll
+tell you first.
+
+
+10. DISCLAIMER OF WARRANTIES
+
+BandBox is provided "as is" and "as available", without warranties of any kind,
+whether express or implied, including any implied warranties of merchantability,
+fitness for a particular purpose, and non-infringement. We do not warrant that
+the app will be uninterrupted, error-free, or that data will never be lost. Some
+jurisdictions don't allow these exclusions, in which case they apply to you only
+as far as the law allows.
+
+
+11. LIMITATION OF LIABILITY
+
+To the fullest extent permitted by law, we won't be liable for indirect,
+incidental, special, consequential, or punitive damages, or for lost data, lost
+instruments, lost profits, or the cost of replacing anything, arising out of your
+use of BandBox. Our total liability for any claim relating to BandBox is limited
+to the greater of the amount you paid us for it in the twelve months before the
+claim, or fifty US dollars. This limitation applies even if we've been told the
+damage was possible.
+
+
+12. INDEMNITY
+
+You agree to cover us against claims arising from information you entered into
+BandBox that you didn't have the right to enter, or from your use of the app in
+breach of these terms.
+
+
+13. CHANGES
+
+We may update these terms. If a change matters, we'll update the date above and
+tell you in the app. Continuing to use BandBox after a change means you accept
+the new terms.
+
+
+14. GOVERNING LAW
+
+These terms are governed by the laws of the State of New Jersey, United States,
+without regard to its conflict-of-laws rules. Disputes will be heard in the
+courts located there, and we each consent to that. Nothing here takes away rights
+you have under mandatory consumer-protection law where you live.
+
+
+15. ABOUT THE APP STORE
+
+If you got BandBox from Apple's App Store, then: this agreement is between you
+and us, not Apple; Apple has no obligation to provide any support for BandBox;
+Apple isn't responsible for any claim about the app, including product liability,
+legal compliance, or intellectual-property claims; and Apple and its subsidiaries
+are third-party beneficiaries of this section and may enforce it against you.
+Your use is also subject to Apple's own App Store terms, and you confirm you're
+not located in a country subject to a US embargo or on a US prohibited-parties
+list.
+
+
+16. CONTACT
+
+julianmcg08@gmail.com
+
+
+################################################################################
+PART 4 — SUPPORT PAGE (as it will be published at mybandbox.app/support)
+################################################################################
+
+BANDBOX SUPPORT
+
+The fastest way to reach a person: julianmcg08@gmail.com. It's one developer
+answering, usually within a couple of days. Telling me your band's name and what
+you tapped just before things went wrong saves a round trip.
+
+REQUIREMENTS. iPhone or iPad running iOS 26 or iPadOS 26 or later. A camera is
+needed for scanning; everything else works without one.
+
+GETTING STARTED. Sign in, name your band, and choose a two-to-five-letter label
+prefix — every code you print starts with it, so pick something recognisable like
+your school's initials. Add an instrument, then print its label from the Labels
+screen.
+
+SHARING WITH ANOTHER DIRECTOR. Settings > People shows your band's six-character
+join code. They install BandBox, tap Join a Band, and type it in. Everyone in a
+band sees the same inventory and can sign gear in and out. Only the director who
+created the band can remove people or generate a new code, and generating a new
+one stops the old one working straight away.
+
+PRINTING LABELS. BandBox builds a print-ready PDF of label sheets on your device,
+which you can send to a printer, save to Files, or AirDrop. Labels already stuck
+on instruments keep the code they were printed with, so changing your prefix later
+doesn't invalidate them.
+
+SCANNING ISN'T WORKING. Make sure BandBox has camera access in iOS Settings >
+BandBox. Codes leave out the characters I, O, 0, and 1 on purpose, so if you're
+typing one in by hand and it won't match, it isn't one of those. A badly scuffed
+sticker may need reprinting.
+
+TWO DEVICES DON'T MATCH. Syncing runs only while the app is open on screen, and
+checks about every thirty seconds. Bring both devices to the foreground and wait
+half a minute. Settings shows when it last synced and any error the server
+returned.
+
+I DIDN'T GET MY SIGN-IN CODE. Codes expire after an hour, so use the most recent
+email. Check spam. If nothing arrives, write to julianmcg08@gmail.com.
+
+DELETING YOUR ACCOUNT. Settings > Delete Account removes your account, your
+inventory, and your sign-out history. If you created your band, this also deletes
+the band and its inventory for every member — so if you just want out, use Leave
+Band instead. If deletion fails or you can't get into the app, email
+julianmcg08@gmail.com from your account's address and I'll delete it for you.
+
+GETTING A COPY OF YOUR DATA. Email julianmcg08@gmail.com from your account's
+address.
+
+PRIVACY. See the Privacy Policy at mybandbox.app/privacy. Short version: no ads,
+no analytics, no tracking, nothing sold.
+
+
+################################################################################
+PART 5 — NOTES FOR SCHOOLS (as it will be published at mybandbox.app/schools)
+################################################################################
+
+BANDBOX AND STUDENT INFORMATION
+
+BandBox is used by band staff to track school-owned instruments and uniforms.
+Students don't have accounts and never use the app.
+
+The only student information in BandBox is a name typed by a director into an
+item's "signed out to" field, retained in that item's history. Nothing else about
+a student is collected — no contact details, no date of birth, no academic
+records, no photographs. Directors can use partial names or locker numbers
+instead, and we recommend it.
+
+That information is visible only to members of the same band, is stored in a
+database that enforces band membership on every row, is transmitted over HTTPS,
+is never used for advertising or analysis, and is never sold or disclosed to
+third parties other than the hosting provider that runs the database (Supabase)
+and, where legally required, valid legal process. It's deleted when the director
+deletes their account or the item.
+
+There is no advertising, no tracking, and no third-party analytics code in the
+app.
+
+If your district needs a data-privacy agreement, a signed questionnaire, or a
+specific hosting region before staff can use BandBox, write to
+julianmcg08@gmail.com and we'll work through it.
+
+
+================================================================================
+END OF FILE
+================================================================================

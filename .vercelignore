@@ -1,0 +1,5 @@
+# Repo files that should not be part of the deployed site.
+docs/
+brand/
+README.md
+.gitignore

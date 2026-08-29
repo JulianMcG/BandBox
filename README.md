@@ -8,20 +8,26 @@ Static HTML. No build step, no dependencies, no JavaScript, no trackers.
 ## Layout
 
 ```
-site/                 what gets deployed (Vercel outputDirectory)
-  index.html          /            one-screen card: what the app is + links
-  support/index.html  /support     App Store Connect "Support URL"
-  privacy/index.html  /privacy     App Store Connect "Privacy Policy URL"
-  terms/index.html    /terms       terms of service
-  schools/index.html  /schools     notes for districts about student information
-  404.html                         not-found page
-  assets/styles.css                the only stylesheet
-  assets/*.svg                     wordmark, hexagon mark, favicon
-  robots.txt, sitemap.xml
-brand/                original logo files
-docs/                 working notes, not published
-vercel.json           output dir, clean URLs, security headers
+index.html            /            one-screen card: what the app is + links
+support/index.html    /support     App Store Connect "Support URL"
+privacy/index.html    /privacy     App Store Connect "Privacy Policy URL"
+terms/index.html      /terms       terms of service
+schools/index.html    /schools     notes for districts about student information
+404.html                           not-found page
+assets/styles.css                  the only stylesheet
+assets/*.svg                       wordmark, hexagon mark, favicon
+robots.txt, sitemap.xml
+brand/                original logo files      (not deployed)
+docs/                 working notes            (not deployed)
+vercel.json           clean URLs, redirects, security headers
+.vercelignore         keeps brand/ and docs/ out of the deployment
 ```
+
+The site lives at the repo root on purpose. Serving from a subdirectory means
+relying on Vercel's `outputDirectory`, which is a build-output setting and does
+not reliably apply to a static site with no build step — that combination
+deploys the repo root and every URL 404s. At the root there is nothing to
+resolve.
 
 Clean URLs come from the folder-plus-`index.html` layout, so `/privacy` works on
 Vercel, Netlify, Cloudflare Pages, GitHub Pages, and any Apache/nginx default.
@@ -29,7 +35,7 @@ Vercel, Netlify, Cloudflare Pages, GitHub Pages, and any Apache/nginx default.
 ## Local preview
 
 ```bash
-cd site && python3 -m http.server 8080
+python3 -m http.server 8080
 ```
 
 Then open <http://localhost:8080>.
@@ -43,9 +49,10 @@ Then open <http://localhost:8080>.
    git push -u origin main
    ```
 
-2. In Vercel, **Add New Project** and import the repo. Vercel reads
-   `vercel.json`, so leave the framework preset on **Other** and leave the build
-   command empty — `outputDirectory` already points at `site/`.
+2. In Vercel, **Add New Project** and import the repo. Leave the framework
+   preset on **Other**, leave the build command empty, and leave the root
+   directory as `./`. There is nothing to build; Vercel serves the files as they
+   are and reads `vercel.json` for routing and headers.
 
 3. Add `mybandbox.app` under **Settings → Domains** and follow the DNS
    instructions. Vercel issues the TLS certificate automatically.
@@ -54,8 +61,6 @@ Every push to `main` redeploys. Pull requests get their own preview URL.
 
 ### What vercel.json does
 
-- `outputDirectory: site` — publishes `site/`, so `brand/` and `docs/` stay out
-  of the deployed site.
 - `cleanUrls` + `trailingSlash: false` — `/privacy` rather than `/privacy/`,
   matching the `<link rel="canonical">` on each page.
 - A strict `Content-Security-Policy`. The site loads one stylesheet and a few
@@ -64,6 +69,8 @@ Every push to `main` redeploys. Pull requests get their own preview URL.
   this.**
 - HSTS, `nosniff`, a referrer policy, and a `Permissions-Policy` that turns off
   camera, microphone, and geolocation — none of which the site uses.
+- Redirects `/docs/*` and `/brand/*` to `/`, so those folders stay unreachable
+  over HTTP even if `.vercelignore` is ever removed.
 
 ## Before submitting to the App Store
 
